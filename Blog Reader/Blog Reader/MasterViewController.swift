@@ -18,6 +18,11 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //app delegate to save data
+        let appDel: AppDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        
+        let context: NSManagedObjectContext = appDel.managedObjectContext
+        
         // get blog content
         let url = NSURL(string:"https://www.googleapis.com/blogger/v3/blogs/10861780/posts?key=AIzaSyB7JSEp0--Dm8txwn5-BFU3cHqS_9N7hSs")!;
         
@@ -33,7 +38,87 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                 
                 if let data = data {
                     
-                    print(NSString(data: data, encoding: NSUTF8StringEncoding))
+                    // print(NSString(data: data, encoding: NSUTF8StringEncoding))
+                    
+                    do {
+                        
+                        // store response in variable and change encoding/format
+                        let jsonResult = try NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers) as! NSDictionary
+                        
+                        // check to make sure response came back and stored in variable.
+                        if jsonResult.count > 0 {
+                            
+                            //check if the array items is in the response.
+                            if let items = jsonResult["items"] as? NSArray {
+                                
+                                
+                                //clear core data first, so we don't keep saving duplicates
+                                let request = NSFetchRequest(entityName: "BlogItems")
+                                
+                                request.returnsObjectsAsFaults = false
+                                
+                                do {
+                                    
+                                    //get core data for BlogItems
+                                    let results = try context.executeFetchRequest(request)
+                                    
+                                    // confirm there are results
+                                    if results.count > 0 {
+                                        
+                                        //loop through
+                                        for result in results {
+                                            
+                                            //delete object
+                                            context.deleteObject(result as! NSManagedObject)
+                                            
+                                            do {
+                                                
+                                                try context.save()
+                                                
+                                            } catch {
+                                                
+                                                print("unable to delete object")
+                                                
+                                            }
+                                            
+                                        }
+                                    }
+                                    
+                                } catch {
+                                    
+                                    print("error accessing core data BlogItems")
+                                }
+                                
+                                
+                                //iterate through items
+                                for item in items {
+                                    
+                                    if let title = item["title"] as? String {
+                                        
+                                        if let content = item["content"] as? String {
+                                            
+                                            let newPost: NSManagedObject = NSEntityDescription.insertNewObjectForEntityForName("BlogItems", inManagedObjectContext: context)
+                                            
+                                            newPost.setValue(title, forKey: "title")
+                                            newPost.setValue(content, forKey: "content")
+                                            
+                                            // print(title)
+                                            // print(content)
+                                            
+                                        }
+                                        
+                                    }
+                                }
+                                
+                            }
+                        }
+                        
+                        
+                    } catch {
+                        
+                        print("error")
+                        
+                    }
                     
                 }
 
@@ -48,16 +133,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         
         
-        
-        
-        
-        
-        
-        // Do any additional setup after loading the view, typically from a nib.
-        self.navigationItem.leftBarButtonItem = self.editButtonItem()
-
-        let addButton = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "insertNewObject:")
-        self.navigationItem.rightBarButtonItem = addButton
         if let split = self.splitViewController {
             let controllers = split.viewControllers
             self.detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
@@ -101,8 +176,12 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showDetail" {
             if let indexPath = self.tableView.indexPathForSelectedRow {
+            
+            //get item that was tapped on
             let object = self.fetchedResultsController.objectAtIndexPath(indexPath)
                 let controller = (segue.destinationViewController as! UINavigationController).topViewController as! DetailViewController
+                
+                //set detail to be the object it got from coredata. Pass the detail to view controller.
                 controller.detailItem = object
                 controller.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
                 controller.navigationItem.leftItemsSupplementBackButton = true
@@ -113,7 +192,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     // MARK: - Table View
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return self.fetchedResultsController.sections?.count ?? 0
+        return 1
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
