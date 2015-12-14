@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "1B96F5668593F6CC44994AC7C0D7C76F1F6ECA83",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "1B96F5668593F6CC44994AC7C0D7C76F1F6ECA83" : 0,
+    "126257C64A993A71CA3959ABFFFF511D2C2E812E" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "C427026F-F1D0-49A9-B4DB-5199B5FB72C1",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "1B96F5668593F6CC44994AC7C0D7C76F1F6ECA83" : "udemy_swift_apps\/",
+    "126257C64A993A71CA3959ABFFFF511D2C2E812E" : ""
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "ParseStarterProject",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Uberz\/ParseStarterProject.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/tylerswartz\/uberClone.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "126257C64A993A71CA3959ABFFFF511D2C2E812E"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/tylerswartz\/udemy_swift_apps.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "1B96F5668593F6CC44994AC7C0D7C76F1F6ECA83"
+    }
+  ]
+}
