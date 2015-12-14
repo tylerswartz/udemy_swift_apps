@@ -57,7 +57,16 @@ class ViewController: UIViewController, UITextFieldDelegate {
                     
                     } else {
                     
-                        self.performSegueWithIdentifier("loginRider", sender: self)
+                        if self.`switch`.on == true {
+                            
+                            self.performSegueWithIdentifier("loginDriver", sender: self)
+                            
+                        } else {
+                            
+                            self.performSegueWithIdentifier("loginRider", sender: self)
+                            
+                        }
+
                     
                     }
                     
@@ -68,9 +77,17 @@ class ViewController: UIViewController, UITextFieldDelegate {
                 
                 PFUser.logInWithUsernameInBackground(username.text!, password:password.text!) {
                     (user: PFUser?, error: NSError?) -> Void in
-                    if user != nil {
+                    if let user = user {
                         
-                        self.performSegueWithIdentifier("loginRider", sender: self)
+                        if user["isDriver"]! as! Bool == true {
+                            
+                            self.performSegueWithIdentifier("loginDriver", sender: self)
+                            
+                        } else {
+                            
+                            self.performSegueWithIdentifier("loginRider", sender: self)
+                            
+                        }
                         
                     } else {
                         
@@ -163,7 +180,16 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         if PFUser.currentUser()?.username != nil {
             
-            performSegueWithIdentifier("loginRider", sender: self)
+            if PFUser.currentUser()?["isDriver"]! as! Bool == true {
+                
+                self.performSegueWithIdentifier("loginDriver", sender: self)
+                
+            } else {
+                
+                self.performSegueWithIdentifier("loginRider", sender: self)
+                
+            }
+            
             
         }
         
