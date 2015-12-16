@@ -11,15 +11,43 @@ import Parse
 import MapKit
 
 
-class DriverViewController: UITableViewController, CLLocationManagerDelegate {
+class DriverViewController: UITableViewController, CLLocationManagerDelegate, MKMapViewDelegate {
 
     var usernames = [String]()
     var locations = [CLLocationCoordinate2D]()
+    var distances = [CLLocationDistance]()
+    
+    var locationManager = CLLocationManager()
+    
+    var lat:CLLocationDegrees = 0
+    var lng:CLLocationDegrees = 0
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        //Ask user location
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+        
+        
+    }
+
+    
+    func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
+        var location:CLLocationCoordinate2D = manager.location!.coordinate
+        
+        lat = location.latitude
+        lng = location.longitude
+        
+        print(location)
+        
         var query = PFQuery(className:"riderRequest")
+        query.whereKey("location", nearGeoPoint:PFGeoPoint(latitude: lat, longitude: lng))
+        query.limit = 10
         query.findObjectsInBackgroundWithBlock {
             (objects: [AnyObject]?, error: NSError?) -> Void in
             
@@ -29,6 +57,9 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate {
                 
                 if let objects = objects as? [PFObject] {
                     
+                    self.usernames.removeAll()
+                    self.locations.removeAll()
+                    
                     for object in objects {
                         
                         if let username = object["username"] as? String {
@@ -37,10 +68,19 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate {
                             
                         }
                         
-                        if let location = object["location"] as? PFGeoPoint {
+                        if let returnedLocation = object["location"] as? PFGeoPoint {
                             
-                            self.locations.append(CLLocationCoordinate2DMake(location.latitude, location.longitude))
+                            let requestLocation = CLLocationCoordinate2DMake(returnedLocation.latitude, returnedLocation.longitude)
                             
+                            self.locations.append(requestLocation)
+                            
+                            let requestCLLocation = CLLocation(latitude: requestLocation.latitude, longitude: requestLocation.longitude)
+                            
+                            let driverCLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                            
+                            let distance = driverCLLocation.distanceFromLocation(requestCLLocation)
+                            
+                            self.distances.append(distance/1000)
                         }
                         
                     }
@@ -58,12 +98,17 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate {
             
         }
 
+        
+        
     }
-
+    
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    
 
     // MARK: - Table view data source
 
@@ -83,7 +128,11 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath)
 
-        cell.textLabel?.text = usernames[indexPath.row]
+        var distanceDouble = Double(distances[indexPath.row])
+        
+        var roundedDistance = Double(round(distanceDouble * 10) / 10)
+        
+        cell.textLabel?.text = usernames[indexPath.row] + " - " + String(roundedDistance) + "km away"
 
         return cell
     }
