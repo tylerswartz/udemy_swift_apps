@@ -43,7 +43,7 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate, MK
         lat = location.latitude
         lng = location.longitude
         
-        print(location)
+//        print(location)
         
         var query = PFQuery(className:"riderRequest")
         query.whereKey("location", nearGeoPoint:PFGeoPoint(latitude: lat, longitude: lng))
@@ -62,33 +62,38 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate, MK
                     
                     for object in objects {
                         
-                        if let username = object["username"] as? String {
+                        if object["driverResponded"] == nil {
                             
-                            self.usernames.append(username)
+
+                            if let username = object["username"] as? String {
+                                
+                                self.usernames.append(username)
+                                
+                            }
                             
-                        }
-                        
-                        if let returnedLocation = object["location"] as? PFGeoPoint {
+                            if let returnedLocation = object["location"] as? PFGeoPoint {
+                                
+                                let requestLocation = CLLocationCoordinate2DMake(returnedLocation.latitude, returnedLocation.longitude)
+                                
+                                self.locations.append(requestLocation)
+                                
+                                let requestCLLocation = CLLocation(latitude: requestLocation.latitude, longitude: requestLocation.longitude)
+                                
+                                let driverCLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                                
+                                let distance = driverCLLocation.distanceFromLocation(requestCLLocation)
+                                
+                                self.distances.append(distance/1000)
+                            }
                             
-                            let requestLocation = CLLocationCoordinate2DMake(returnedLocation.latitude, returnedLocation.longitude)
-                            
-                            self.locations.append(requestLocation)
-                            
-                            let requestCLLocation = CLLocation(latitude: requestLocation.latitude, longitude: requestLocation.longitude)
-                            
-                            let driverCLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
-                            
-                            let distance = driverCLLocation.distanceFromLocation(requestCLLocation)
-                            
-                            self.distances.append(distance/1000)
                         }
                         
                     }
                     
                     self.tableView.reloadData()
                     
-                    print(self.locations)
-                    print(self.usernames)
+//                    print(self.locations)
+//                    print(self.usernames)
                     
                 }
             } else {
@@ -189,6 +194,16 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate, MK
             
             navigationController?.setNavigationBarHidden(navigationController?.navigationBarHidden == false, animated: false)
             PFUser.logOut()
+            
+        } else if segue.identifier == "showViewRequests" {
+            
+            if let destination = segue.destinationViewController as? RequestViewController {
+                
+                destination.requestLocation = locations[(tableView.indexPathForSelectedRow?.row)!]
+                destination.requestUsername = usernames[(tableView.indexPathForSelectedRow?.row)!]
+                
+            }
+            
             
         }
         
