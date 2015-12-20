@@ -29,7 +29,7 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate, MK
         //Ask user location
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestWhenInUseAuthorization()
+        locationManager.requestAlwaysAuthorization()
         locationManager.startUpdatingLocation()
         
         
@@ -43,9 +43,67 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate, MK
         lat = location.latitude
         lng = location.longitude
         
-//        print(location)
+        print(location)
         
-        var query = PFQuery(className:"riderRequest")
+        
+        
+        
+        var query = PFQuery(className:"driverLocation")
+        query.whereKey("username", equalTo:PFUser.currentUser()!.username!)
+        query.findObjectsInBackgroundWithBlock {
+            (objects: [AnyObject]?, error: NSError?) -> Void in
+            
+            if error == nil {
+                
+                
+                if let objects = objects as? [PFObject] {
+                    
+                    if objects.count > 0 {
+                    
+                        for object in objects {
+                            
+                            var query = PFQuery(className:"driverLocation")
+                            query.getObjectInBackgroundWithId(object.objectId!) {
+                                (object: PFObject?, error: NSError?) -> Void in
+                                if error != nil {
+                                    print(error)
+                                } else if let object = object {
+                                    
+                                    object["driverLocation"] = PFGeoPoint(latitude: location.latitude, longitude: location.longitude)
+                                    object.saveInBackground()
+                                    
+                                    
+                                }
+                            }
+                        }
+                    } else {
+                    
+                        var driverLocation = PFObject(className:"driverLocation")
+                        driverLocation["username"] = PFUser.currentUser()?.username
+                        driverLocation["driverLocation"] = PFGeoPoint(latitude:location.latitude, longitude:location.longitude)
+                        
+                        
+                        driverLocation.saveInBackground()
+                        
+                        print("Saved in parse")
+                        
+                    }
+
+                }
+            }
+            
+            
+            else {
+                // Log details of the failure
+                print(error)
+            }
+            
+        }
+
+        
+        
+        
+        query = PFQuery(className:"riderRequest")
         query.whereKey("location", nearGeoPoint:PFGeoPoint(latitude: lat, longitude: lng))
         query.limit = 10
         query.findObjectsInBackgroundWithBlock {
@@ -193,6 +251,9 @@ class DriverViewController: UITableViewController, CLLocationManagerDelegate, MK
         if segue.identifier == "logoutDriver" {
             
             navigationController?.setNavigationBarHidden(navigationController?.navigationBarHidden == false, animated: false)
+            
+            locationManager.stopUpdatingLocation()
+            
             PFUser.logOut()
             
         } else if segue.identifier == "showViewRequests" {
