@@ -25,8 +25,7 @@ class RequestViewController: UIViewController, CLLocationManagerDelegate {
             (objects: [AnyObject]?, error: NSError?) -> Void in
             
             if error == nil {
-                // The find succeeded.
-                // Do something with the found objects
+                
                 
                 if let objects = objects as? [PFObject] {
                     
@@ -34,13 +33,46 @@ class RequestViewController: UIViewController, CLLocationManagerDelegate {
                         
                         var query = PFQuery(className:"riderRequest")
                         query.getObjectInBackgroundWithId(object.objectId!) {
-                            (objects: PFObject?, error: NSError?) -> Void in
+                            (object: PFObject?, error: NSError?) -> Void in
                             if error != nil {
                                 print(error)
                             } else if let object = object {
                                 
                                 object["driverResponded"] = PFUser.currentUser()!.username!
                                 object.saveInBackground()
+                                
+                                let requestCLLocation = CLLocation(latitude: self.requestLocation.latitude, longitude: self.requestLocation.longitude)
+                                
+                                
+                                CLGeocoder().reverseGeocodeLocation(requestCLLocation, completionHandler: { (placemarks, error) -> Void in
+                                    if error != nil {
+                                        
+                                        print(error!)
+                                        
+                                    } else {
+                                        
+                                        if placemarks!.count > 0 {
+                                            
+                                            let pm = placemarks![0] as! CLPlacemark
+                                            
+                                            let mkPm = MKPlacemark(placemark: pm)
+                                            
+                                            var mapItem = MKMapItem(placemark: mkPm)
+                                            
+                                            mapItem.name = self.requestUsername
+                                            
+                                            var launchOptions = [MKLaunchOptionsDirectionsModeKey : MKLaunchOptionsDirectionsModeDriving]
+                                            
+                                            mapItem.openInMapsWithLaunchOptions(launchOptions)
+                                            
+                                            
+                                        } else {
+                                            
+                                            print("Problem with the data received from geocoder")
+                                        
+                                        }
+                                    }
+                                })
                                 
                             }
                     
@@ -56,6 +88,8 @@ class RequestViewController: UIViewController, CLLocationManagerDelegate {
         }
         
     }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
